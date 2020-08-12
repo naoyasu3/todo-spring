@@ -82,15 +82,20 @@ class TaskServiceImplUnitTest {
         
     }
 
-    @Test // テストケース
+    @Test // テストケースt
     @DisplayName("タスクが取得できない場合のテスト")
         // テスト名
     void testGetTaskThrowException() {
     	
         // モッククラスのI/Oをセット
+    	when(dao.findById(0)).thenThrow(new EmptyResultDataAccessException(1));
         
         //タスクが取得できないとTaskNotFoundExceptionが発生することを検査
-        
+        try {
+			Optional<Task> task0 = taskServiceImpl.getTask(0);
+		} catch (TaskNotFoundException e) {
+			assertEquals(e.getMessage(), "指定されたタスクが存在しません");
+		}
     }
     
     @Test // テストケース
@@ -99,14 +104,19 @@ class TaskServiceImplUnitTest {
     void testGetTaskReturnOne() {
     	
     	//Taskをデフォルト値でインスタンス化
+    	Task task = new Task();
+    	Optional<Task> taskOpt = Optional.ofNullable(task);
     	
         // モッククラスのI/Oをセット
+    	when(dao.findById(1)).thenReturn(taskOpt);
 
         // サービスを実行
+    	Optional<Task> taskActual = taskServiceImpl.getTask(1);
 
         // モックの指定メソッドの実行回数を検査
-
+    	verify(dao, times(1)).findById(1);
         //Taskが存在していることを確認
+    	assertTrue(taskActual.isPresent());
         
     }
     
@@ -116,9 +126,14 @@ class TaskServiceImplUnitTest {
     void throwNotFoundException() {
     	
         // モッククラスのI/Oをセット
+    	when(dao.deleteById(0)).thenReturn(0);
 
     	//削除対象が存在しない場合、例外が発生することを検査
-
+    	try {
+			taskServiceImpl.deleteById(0);
+		} catch (TaskNotFoundException e) {
+			assertEquals(e.getMessage(), "削除するタスクが存在しません");
+		}
     }
     
     
